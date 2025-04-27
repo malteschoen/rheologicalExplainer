@@ -39,7 +39,7 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 | Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms |
 | ---- | ---- | ---- | ---- | ---- |
-| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | 0 |$\nabla \cdot (\eta_s \nabla U)$ |
+| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | ---- |$\nabla \cdot (\eta_s \nabla U)$ |
 | BSD (rheoTool)      | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
 | coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
 
@@ -48,5 +48,49 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 - Do note that these formulae give NO information about what the value of $\tau$ would be. That is being handled by the constitutive equation. The equations above rather add a bit of 'skillful noise' to help with stability.
 
 
+# Stabilization (?) as implemented in the new momentumTransport models of OpenFOAM
+### Unadulterated source code 
+```
+template<class BasicTurbulenceModel>
+tmp<Foam::fvVectorMatrix>
+Maxwell<BasicTurbulenceModel>::divDevRhoReff
+(
+    const volScalarField& rho,
+    volVectorField& U
+) const
+{
+    return
+    (!play https://www.youtube.com/watch?v=8Q-b3bLQ3jc
+        fvc::div
+        (
+            this->alpha_*rho*this->nuM_*fvc::grad(U)
+        )
+      + fvc::div(this->alpha_*rho*sigma_)
+      - fvc::div(this->alpha_*rho*this->nu()*dev2(T(fvc::grad(U))))
+      - fvm::laplacian(this->alpha_*rho*nu0(), U)
+    );
+}
+```
+### Simplifed source code
+ 
+```
+ fvc::div
+        (
+            nuP*fvc::grad(U)
+        )
+      + fvc::div(tau)
+      - fvc::div(nuS*dev2(T(fvc::grad(U))))
+      - fvm::laplacian(nuP+nuS, U)
+```
+- we assumed $\alpha = \rho= 1$
+- we renamed $nuM = nuP$
+- we renamed $sigma= tau$
+- we exploited $nu0 = nuS+nuP$ (see definition in Maxwell.H)
+- remember: fvc is explicit, fvm is implicit
+
+| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms |
+| ---------- | ---- | ---- | ---- | ---- |
+| as code    | fvc::div(tau)| - fvc::div(nuS*dev2(T(fvc::grad(U)))) |fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U)|
+| BSD from above as rference |  $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
 
 # Literature
