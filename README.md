@@ -37,12 +37,15 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 # Stabilizations according to rheoTool user guide and others
 
-| Type | Term 1 (Divergence of polymeric stress contribution) | Term 2 | Term 3 | Term 4 |
+| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms |
 | ---- | ---- | ---- | ---- | ---- |
-| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overline{\tau}$  | $\nabla \cdot \eta_s \nabla U$ | ---- |
-| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $- \nabla \cdot \overline{\tau}$  | $\nabla \cdot \eta_p \nabla U$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
-| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overline{\tau}$  | $\overbrace{\nabla \cdot \eta_p \nabla U}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | 0 |$\nabla \cdot (\eta_s \nabla U)$ |
+| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
 
+- Do note that for a suffciently fine mesh $\tau$ and $\overbrace{\tau}$ are equal!
+- Do note that for a suffciently fine mesh the other added terms also cancel out.
+- Do note that these formulae give NO information about what the value of $\tau$ would be. That is being handled by the constitutive equation. The equations above rather add a bit of 'skillful noise' to help with stability.
 
 
 
