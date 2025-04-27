@@ -35,4 +35,15 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 ### Special case 6: the role of relaxation time on effective viscosity
 
+# Stabilizations according to rheoTool user guide and others
+
+| Type | Term 1 (Divergence of polymeric stress contribution) | Term 2 | Term 3 | Term 4 |
+| ---- | ---- | ---- | ---- | ---- |
+| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overline{\tau}$  | $\nabla \cdot \eta_s \nabla U$ | ---- |
+| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $- \nabla \cdot \overline{\tau}$  | $\nabla \cdot \eta_p \nabla U$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overline{\tau}$  | $\overbrace{\nabla \cdot \eta_p \nabla U}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+
+
+
+
 # Literature
