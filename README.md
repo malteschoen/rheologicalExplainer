@@ -37,19 +37,21 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 # Stabilizations according to rheoTool user guide and others
 
-| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms |
-| ---- | ---- | ---- | ---- | ---- |
-| none (rheoTool)     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | ---- |$\nabla \cdot (\eta_s \nabla U)$ |
-| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
-| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms | Helpful link |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| none (rheoTool)  in equations     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | ---- |$\nabla \cdot (\eta_s \nabla U)$ | ---- |
+| none (rheoTool)  in OpenFOAM     | ---- | fvc::div(tau) | ---- |fvm::laplacian(etaS)| ---- |
+| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
+| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
+| DEVSS (viscoelasticFluidFoam from foam-extend40) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |(https://github.com/Unofficial-Extend-Project-Mirror/foam-extend-foam-extend-4.0/blob/268bb07d15d8d2de5df531f7702df54da05f15ad/src/transportModels/viscoelastic/viscoelasticLaws/Giesekus/Giesekus.C)[here]|
 
-- Do note that for a suffciently fine mesh $\tau$ and $\overbrace{\tau}$ are equal!
-- Do note that for a suffciently fine mesh the other added terms also cancel out.
+- Do note that for a suffciently fine mesh $\tau$ and $\overbrace{\tau}$ are equal! What does that even mean?
+- Do note that for a suffciently fine mesh the other added terms also cancel out. Which terms?
 - Do note that these formulae give NO information about what the value of $\tau$ would be. That is being handled by the constitutive equation. The equations above rather add a bit of 'skillful noise' to help with stability.
 
 
 # Stabilization (?) as implemented in the new momentumTransport models of OpenFOAM
-### Unadulterated source code 
+### Unadulterated source code from OF2312
 ```
 template<class BasicTurbulenceModel>
 tmp<Foam::fvVectorMatrix>
@@ -60,7 +62,7 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
 ) const
 {
     return
-    (!play https://www.youtube.com/watch?v=8Q-b3bLQ3jc
+    (
         fvc::div
         (
             this->alpha_*rho*this->nuM_*fvc::grad(U)
@@ -71,7 +73,7 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
     );
 }
 ```
-### Simplifed source code
+### Simplifed source code from OF2312
  
 ```
  fvc::div
