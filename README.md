@@ -37,13 +37,19 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 # Stabilizations according to rheoTool user guide and others
 
-| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms | Helpful link |
+| Type | LHS:| RHS 1: overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS 2: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS 3: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms (?) | Helpful link |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| none (rheoTool)  in equations     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | ---- |$\nabla \cdot (\eta_s \nabla U)$ | ---- |
-| none (rheoTool)  in OpenFOAM     | ---- | fvc::div(tau) | ---- |fvm::laplacian(etaS)| ---- |
-| BSD (rheoTool)      | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
-| coupling (rheoTool) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
-| DEVSS (viscoelasticFluidFoam from foam-extend40) | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |(https://github.com/Unofficial-Extend-Project-Mirror/foam-extend-foam-extend-4.0/blob/268bb07d15d8d2de5df531f7702df54da05f15ad/src/transportModels/viscoelastic/viscoelasticLaws/Giesekus/Giesekus.C)[here]|
+| none (rheoTool) in OpenFOAM | ---- | fvc::div(tau) | ---- |fvm::laplacian(etaS,U)| ---- |
+| none (rheoTool) in equations     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | ---- |$\nabla \cdot (\eta_s \nabla U)$ | ---- |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| BSD (rheoTool) in OpenFOAM | ---- | fvc::div(tau)  |  -fvc::laplacian(etaP, U) | fvm::laplacian((etaP + etaS),U) | ---- |
+| BSD (rheoTool) in equations     | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| coupling (rheoTool) in OpenFOAM | ---- | fvc::div(tau) | -etaP*fvc::div(fvc::grad(U)) | fvm::laplacian((etaP + etaS),U)| ---- |
+| coupling (rheoTool) in equations | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\widehat{\nabla \cdot (\eta_p \nabla U)}$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ | ---- |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| DEVSS (Favero) in OpenFOAM | ---| fvc::div(tau)|  -fvc::laplacian(etaP,U)| fvm::laplacian((etaP + etaS),U) |[here](https://github.com/Unofficial-Extend-Project-Mirror/foam-extend-foam-extend-4.0/blob/268bb07d15d8d2de5df531f7702df54da05f15ad/src/transportModels/viscoelastic/viscoelasticLaws/Giesekus/Giesekus.C)|
+| DEVSS (Favero) in equations | $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$ | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |[here](https://github.com/Unofficial-Extend-Project-Mirror/foam-extend-foam-extend-4.0/blob/268bb07d15d8d2de5df531f7702df54da05f15ad/src/transportModels/viscoelastic/viscoelasticLaws/Giesekus/Giesekus.C)|
 
 - Do note that for a suffciently fine mesh $\tau$ and $\overbrace{\tau}$ are equal! What does that even mean?
 - Do note that for a suffciently fine mesh the other added terms also cancel out. Which terms?
@@ -90,9 +96,8 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
 - we exploited $nu0 = nuS+nuP$ (see definition in Maxwell.H)
 - remember: fvc is explicit, fvm is implicit
 
-| Type | LHS: Divergence of polymeric stress contribution | RHS: Divergence of polymeric stress contribution - overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms |
+| Type | LHS:| RHS 1: overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS 2: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS 3: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms (?) | Helpful link |
 | ---------- | ---- | ---- | ---- | ---- |
-| as code    | fvc::div(tau)| - fvc::div(nuS*dev2(T(fvc::grad(U)))) |fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U)|
-| BSD from above as rference |  $\nabla \cdot \tau =$ | $\nabla \cdot \overbrace{\tau}$  | $-\nabla \cdot (\eta_p \nabla U)$  | $\nabla \cdot  (\eta_s + \eta_p) \nabla U$ |
+| as code    | fvc::div(tau)| - fvc::div(nuS*dev2(T(fvc::grad(U)))) |fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U)| ---- |
 
 # Literature
