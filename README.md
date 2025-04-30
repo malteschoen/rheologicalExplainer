@@ -79,7 +79,7 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
     );
 }
 ```
-### Simplifed source code from OF2312
+### Simplifed source code from OF v2312
  
 ```
  fvc::div
@@ -92,7 +92,7 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
 ```
 - we assumed $\alpha = \rho= 1$
 - we renamed $nuM = nuP$
-- we renamed $sigma= tau$
+- we renamed $\sigma = \tau$
 - we exploited $nu0 = nuS+nuP$ (see definition in Maxwell.H)
 - remember: fvc is explicit, fvm is implicit
 
@@ -102,12 +102,12 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
       - fvc::div(nuEff*dev2(T(fvc::grad(U))))
       - fvm::laplacian(nuEff, U)
  ```
-### Understanding OpenFOAM v2312
+### Understanding OpenFOAM additions
 
 | Type | LHS: | RHS 1: | RHS 2:  | RHS 3:  | Helpful link |
 | ---------- | ---- | ---- | ---- | ---- | ---- |
 | laminarModel.C (OpenFOAM v2312)      |----- | - fvc::div(nuEff* dev2(T(fvc::grad(U)))) | ----| -fvm::laplacian(nuEff, U) | ---- |
 | Maxwell.C  (OpenFOAM v2312)          | fvc::div(tau) | - fvc::div(nuS* dev2(T(fvc::grad(U)))) | fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U) | ---- |
-| guesswork on none (rheoTool) | fvc::div(tau) | ---- | ---- |fvm::laplacian(etaS,U)| ---- |
-| guesswork on BSD (rheoTool)  | fvc::div(tau)   | ---- |  -fvc::laplacian(etaP, U) | fvm::laplacian((etaP + etaS),U) | ---- |
+| none (rheoTool) | fvc::div(tau) | ---- | ---- |fvm::laplacian(etaS,U)| ---- |
+| BSD (rheoTool)  | fvc::div(tau) | ---- |  -fvc::laplacian(etaP, U) | fvm::laplacian((etaP + etaS),U) | ---- |
 # Literature
