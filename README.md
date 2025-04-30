@@ -96,8 +96,17 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
 - we exploited $nu0 = nuS+nuP$ (see definition in Maxwell.H)
 - remember: fvc is explicit, fvm is implicit
 
-| Type | LHS:| RHS 1: overbrace indicates linear interpolation from cell centre instead of just 'dropping in' cell centre value | RHS 2: Widehat indicates 'special second-order derivative'. $\eta_p$ is a habitual scaling factor, but you might as well put in anything else.   | RHS 3: Divergence of solvent contribution (from solvent viscosity and deformation gradient) plus stabilization terms (?) | Helpful link |
-| ---------- | ---- | ---- | ---- | ---- |
-| as code    | fvc::div(tau)| - fvc::div(nuS*dev2(T(fvc::grad(U)))) |fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U)| ---- |
+### for reference: simplified version of laminarModel.C (see eg. [here](https://www.openfoam.com/documentation/guides/latest/api/linearViscousStress_8C_source.html)
+
+```
+      - fvc::div(nuEff*dev2(T(fvc::grad(U))))
+      - fvm::laplacian(nuEff, U)
+ 
+```
+### Understanding OpenFOAM v2312
+
+| Type | LHS: | RHS 1: | RHS 2:  | RHS 3:  | Helpful link |
+| ---------- | ---- | ---- | ---- | ---- | ---- |
+| as code    | fvc::div(tau) | - fvc::div(nuS dev2(T(fvc::grad(U)))) | fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U) | ---- |
 
 # Literature
