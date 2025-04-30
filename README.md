@@ -57,7 +57,7 @@ We choose to ignore all stresses other than $\tau_{xy}$, hence  $tr\left(\tau\ri
 
 
 # Stabilization (?) as implemented in the new momentumTransport models of OpenFOAM
-### Unadulterated source code from OF2312
+### Unadulterated source code from OF2312 [here](https://www.openfoam.com/documentation/guides/latest/api/Maxwell_8C.html)
 ```
 template<class BasicTurbulenceModel>
 tmp<Foam::fvVectorMatrix>
@@ -96,17 +96,18 @@ Maxwell<BasicTurbulenceModel>::divDevRhoReff
 - we exploited $nu0 = nuS+nuP$ (see definition in Maxwell.H)
 - remember: fvc is explicit, fvm is implicit
 
-### for reference: simplified version of laminarModel.C (see eg. [here](https://www.openfoam.com/documentation/guides/latest/api/linearViscousStress_8C_source.html)
+### for reference: simplified version of laminarModel.C (see [here](https://www.openfoam.com/documentation/guides/latest/api/linearViscousStress_8C_source.html))
 
 ```
       - fvc::div(nuEff*dev2(T(fvc::grad(U))))
       - fvm::laplacian(nuEff, U)
- 
-```
+ ```
 ### Understanding OpenFOAM v2312
 
 | Type | LHS: | RHS 1: | RHS 2:  | RHS 3:  | Helpful link |
 | ---------- | ---- | ---- | ---- | ---- | ---- |
-| as code    | fvc::div(tau) | - fvc::div(nuS dev2(T(fvc::grad(U)))) | fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U) | ---- |
-
+| laminarModel.C (OpenFOAM v2312)      |----- | - fvc::div(nuEff* dev2(T(fvc::grad(U)))) | ----| -fvm::laplacian(nuEff, U) | ---- |
+| Maxwell.C  (OpenFOAM v2312)          | fvc::div(tau) | - fvc::div(nuS* dev2(T(fvc::grad(U)))) | fvc::div(nuP*fvc::grad(U)) | -fvm::laplacian(nuP+nuS, U) | ---- |
+| guesswork on none (rheoTool) | fvc::div(tau) | ---- | ---- |fvm::laplacian(etaS,U)| ---- |
+| guesswork on BSD (rheoTool)  | fvc::div(tau)   | ---- |  -fvc::laplacian(etaP, U) | fvm::laplacian((etaP + etaS),U) | ---- |
 # Literature
